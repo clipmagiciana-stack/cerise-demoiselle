@@ -12,7 +12,7 @@ export async function GET(request:Request){
  const rows=await env.DB.prepare('SELECT id,data,deleted FROM product_records').all();
  const data=new Map<string,any>(seed.map((p:any)=>[String(p.id),{...p,id:String(p.id),stock:null,status:'on-order'}]));
  for(const r of rows.results as any[]){if(r.deleted)data.delete(r.id);else {const record=JSON.parse(r.data);const base=seed.find(p=>String(p.id)===r.id);if(base&&record.description===(legacyDescriptions as Record<string,string>)[r.id])record.description=base.description;data.set(r.id,record);}}
- return json([...data.values()]);
+ return Response.json([...data.values()],{headers:{'Cache-Control':'no-store','Access-Control-Allow-Origin':'*'}});
  }
  if(path.startsWith('/api/images/')){
  const key=path.slice('/api/images/'.length);if(!/^[a-f0-9-]+\.(jpg|png|webp)$/.test(key))return json({error:'Not found'},404);
