@@ -15,7 +15,7 @@ function productPriority(p){
     if(/\bbig\b/.test(n))return 0;
     if(/\bsmall\b/.test(n))return 1;
   }
-  if(n.includes('nigel')&&n.includes('christmas')&&n.includes('edition'))return 2;
+  if(n==='nigel - personalized 1 of 1'||(n.includes('nigel')&&n.includes('christmas')&&n.includes('edition')))return 2;
   return 3;
 }
 function updateDescriptionToggles(){
@@ -50,7 +50,7 @@ for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=
 $('selectionBtn').onclick=()=>{renderSelection();$('copyStatus').textContent='';$('selectionDialog').showModal()};$('search').oninput=render;
 function cartMessage(){const list=products.filter(p=>selection[p.id]);return 'Hello Cerise Demoiselle Studio!\nI would like to order the following items:\n\n'+list.map((p,i)=>`${i+1}. ${p.name.replace(/\s+/g,' ').trim()}\n   Quantity: ${selection[p.id]} × ${money(p.price)}\n   Subtotal: ${money(p.price*selection[p.id])}`).join('\n\n')+'\n\nTotal: '+money(list.reduce((sum,p)=>sum+p.price*selection[p.id],0))+'\n\nPlease confirm availability and delivery or collection details. Thank you!';}
 $('copy').onclick=()=>{if(!products.some(p=>selection[p.id]))return;window.open('https://wa.me/23055003777?text='+encodeURIComponent(cartMessage()),'_blank','noopener,noreferrer');};
-async function refresh(){try{const r=await fetch(API_ORIGIN+'/api/products',{cache:'no-store'});if(!r.ok)throw Error();products=(await r.json()).map(p=>({...p,image:API_ORIGIN?new URL(p.image,API_ORIGIN+'/').href:p.image}));selection=Object.fromEntries(Object.entries(selection).filter(([id,n])=>products.some(p=>p.id===id&&p.status!=='out-of-stock'&&p.stock!==0)&&Number.isSafeInteger(n)&&n>0).map(([id,n])=>[id,Math.min(n,products.find(p=>p.id===id).stock??n)]));$('total').textContent=products.length+' pieces';save();render();if($('selectionDialog').open)renderSelection();if($('productDialog').open){const id=$('productDialog').dataset.product;if(products.some(p=>p.id===id))openProduct(id);else $('productDialog').close()}}catch{$('empty').hidden=false;$('empty').textContent='The collection could not load. Please refresh to try again.'}}
+async function refresh(){try{const r=await fetch(API_ORIGIN+'/api/products',{cache:'no-store'});if(!r.ok)throw Error();products=(await r.json()).map(p=>({...p,name:String(p.name||'').trim().toLowerCase()==='nigel christmas edition'?'Nigel - personalized 1 of 1':p.name,image:API_ORIGIN?new URL(p.image,API_ORIGIN+'/').href:p.image}));selection=Object.fromEntries(Object.entries(selection).filter(([id,n])=>products.some(p=>p.id===id&&p.status!=='out-of-stock'&&p.stock!==0)&&Number.isSafeInteger(n)&&n>0).map(([id,n])=>[id,Math.min(n,products.find(p=>p.id===id).stock??n)]));$('total').textContent=products.length+' pieces';save();render();if($('selectionDialog').open)renderSelection();if($('productDialog').open){const id=$('productDialog').dataset.product;if(products.some(p=>p.id===id))openProduct(id);else $('productDialog').close()}}catch{$('empty').hidden=false;$('empty').textContent='The collection could not load. Please refresh to try again.'}}
 const intro=$('brandIntro');if(intro){setTimeout(()=>intro.remove(),1900);intro.addEventListener('click',()=>intro.remove())}
 refresh();setInterval(refresh,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 window.addEventListener('resize',updateDescriptionToggles);
